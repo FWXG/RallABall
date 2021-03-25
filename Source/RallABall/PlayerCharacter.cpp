@@ -19,10 +19,16 @@ APlayerCharacter::APlayerCharacter()
 	CameraSpring->bEnableCameraLag = true;
 	CameraSpring->CameraLagSpeed = 5.0f;
 
+	
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	Camera->SetupAttachment(CameraSpring, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 	CameraSpring->SetupAttachment(RootComponent);
+
+	BoxPerson = CreateDefaultSubobject<UBoxComponent>(TEXT("MelleBox"));
+	BoxPerson->SetupAttachment(RootComponent);
+	BoxPerson->bHiddenInGame = false;
 	
 	GetCapsuleComponent()->InitCapsuleSize(40.0f, 100.0f);
 

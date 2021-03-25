@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Input/Events.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "PlayerCharacter.generated.h"
@@ -42,7 +43,6 @@ protected:
 
 	float TurnRate;
 	float LookRate;
-	FVector Speed;
 
 public:	
 	// Called every frame
@@ -56,6 +56,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = BoxCollision)
+		UBoxComponent* BoxPerson;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Charecter Movement: Walking")
 		float PlayerSprint;
