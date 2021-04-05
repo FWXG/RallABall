@@ -19,16 +19,23 @@ APlayerCharacter::APlayerCharacter()
 	CameraSpring->bEnableCameraLag = true;
 	CameraSpring->CameraLagSpeed = 5.0f;
 
-	
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	Camera->SetupAttachment(CameraSpring, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 	CameraSpring->SetupAttachment(RootComponent);
 
-	BoxPerson = CreateDefaultSubobject<UBoxComponent>(TEXT("MelleBox"));
-	BoxPerson->SetupAttachment(RootComponent);
-	BoxPerson->bHiddenInGame = false;
+	BoxHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HandBox"));
+	BoxHand->SetupAttachment(RootComponent);
+	BoxHand->SetNotifyRigidBodyCollision(false);
+	BoxHand->SetCollisionProfileName("NoCollision");
+	BoxHand->bHiddenInGame = false;
+
+	BoxLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("LegBox"));
+	BoxLeg->SetupAttachment(RootComponent);
+	BoxLeg->SetNotifyRigidBodyCollision(false);
+	BoxLeg->SetCollisionProfileName("NoCollision");
+	BoxHand->bHiddenInGame = false;
 	
 	GetCapsuleComponent()->InitCapsuleSize(40.0f, 100.0f);
 
@@ -37,13 +44,27 @@ APlayerCharacter::APlayerCharacter()
 	TurnRate = 45.0f;
 	LookRate = 45.0f;
 	PlayerSprint = 2.0f;
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> MelleHandAttackObject(TEXT("AnimMontage'/Game/Objects/Person/Animation/Punch.Punch'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeLegAttackObject(TEXT("AnimMontage'/Game/Objects/Person/Animation/LegAttack.LegAttack'"));
+	if (MelleHandAttackObject.Succeeded() && MeleeLegAttackObject.Succeeded())
+	{
+		MeleeHandAttack = MelleHandAttackObject.Object;
+		MeleeLegAttack = MeleeLegAttackObject.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	const FAttachmentTransformRules RulesOfAttach(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	BoxHand->AttachToComponent(GetMesh(), RulesOfAttach, "hand_Punch_Socket");
+	BoxLeg->AttachToComponent(GetMesh(), RulesOfAttach, "leg_kick_socket");
+
+	BoxHand->OnComponentHit.AddDynamic(this, &APlayerCharacter::AttackHit);
+	BoxLeg->OnComponentHit.AddDynamic(this, &APlayerCharacter::AttackHit);
+
 }
 
 // Called every frame
@@ -64,7 +85,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		GetCharacterMovement()->JumpZVelocity = 400.0f;
 	}
-
+	if (isAttack == true)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("true %f"),
+			GetWorld()->TimeSeconds));
+	}
 }
 
 // Called to bind functionality to input
@@ -84,8 +111,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed,this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released,this, &APlayerCharacter::StopSprinting);
 
-	PlayerInputComponent->BindAction(TEXT("LegAttack"), IE_Pressed, this, &APlayerCharacter::LegAttack);
-	PlayerInputComponent->BindAction(TEXT("LegAttack"), IE_Released, this, &APlayerCharacter::LegAttack);
+	PlayerInputComponent->BindAction(TEXT("HandAttack"), IE_Pressed, this, &APlayerCharacter::HandAttackInput);
+	PlayerInputComponent->BindAction(TEXT("HandAttack"), IE_Released, this, &APlayerCharacter::HandAttackEnd);
+
+	PlayerInputComponent->BindAction(TEXT("LegAttack"), IE_Pressed, this, &APlayerCharacter::LegAttackInput);
+	PlayerInputComponent->BindAction(TEXT("LegAttack"), IE_Released, this, &APlayerCharacter::LegAttackEnd);
 }
 
 void APlayerCharacter::MoveForward(float value)
@@ -124,8 +154,52 @@ void APlayerCharacter::StopSprinting()
 	GetCharacterMovement()->MaxWalkSpeed /= PlayerSprint;
 }
 
-void APlayerCharacter::LegAttack()
+void APlayerCharacter::AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-
+	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Blue, __FUNCTION__);
 }
+
+void APlayerCharacter::HandAttackStart()
+{
+	BoxHand->SetCollisionProfileName("Melee");
+	BoxHand->SetNotifyRigidBodyCollision(true);
+	isAttack = true;
+}
+
+void APlayerCharacter::HandAttackEnd()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	BoxHand->SetNotifyRigidBodyCollision(false);
+	BoxHand->SetCollisionProfileName("NoCollision");
+	isAttack = false;
+}
+
+void APlayerCharacter::HandAttackInput()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 0;
+	PlayAnimMontage(MeleeHandAttack, 1.2f, FName("start_1"));
+}
+
+void APlayerCharacter::LegAttackInput()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 0;
+	PlayAnimMontage(MeleeLegAttack, 1.0f, FName("start"));
+}
+
+void APlayerCharacter::LegAttackStart()
+{
+	BoxLeg->SetCollisionProfileName("Melee");
+	BoxLeg->SetNotifyRigidBodyCollision(true);
+	isAttack = true;
+}
+
+void APlayerCharacter::LegAttackEnd()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	BoxLeg->SetNotifyRigidBodyCollision(false);
+	BoxLeg->SetCollisionProfileName("NoCollision");
+	isAttack = false;
+}
+
+
 

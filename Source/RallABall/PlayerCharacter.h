@@ -12,6 +12,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/EngineTypes.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -22,29 +23,17 @@ class RALLABALL_API APlayerCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
-		
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	void HandAttackStart();
+	void HandAttackEnd();
+	void LegAttackStart();
+	void LegAttackEnd();
+	void LegAttackInput();
+	void HandAttackInput();
 
-	void MoveForward(float value);
-	void MoveRight(float value);
-	void CameraPitch(float value);
-	void CameraYaw(float value);
-	void Sprint();
-	void StopSprinting();
-	void LegAttack();
-
-	//void DeathRagdoll()
-
-	FVector2D CameraInput;
-	FVector2D MoveInput;
-
-	float TurnRate;
-	float LookRate;
-
-public:	
+	UPROPERTY()
+		bool isAttack = false;
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -57,11 +46,45 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		UCameraComponent* Camera;
 
-	UPROPERTY(VisibleAnywhere, Category = BoxCollision)
-		UBoxComponent* BoxPerson;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision)
+		UBoxComponent* BoxHand;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision)
+		UBoxComponent* BoxLeg;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Charecter Movement: Walking")
 		float PlayerSprint;
-		
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation)
+		class UAnimMontage* MeleeHandAttack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation)
+		class UAnimMontage* MeleeLegAttack;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	void MoveForward(float value);
+	void MoveRight(float value);
+	void CameraPitch(float value);
+	void CameraYaw(float value);
+	void Sprint();
+	void StopSprinting();
+
+	UFUNCTION()
+		void AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
+	/*UFUNCTION()
+		void AttackOverlapBegin();*/
+
+	//void DeathRagdoll()
+
+	FVector2D CameraInput;
+	FVector2D MoveInput;
+
+	float TurnRate;
+	float LookRate;
+	
 
 };
