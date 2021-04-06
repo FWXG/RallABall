@@ -30,6 +30,9 @@ public:
 	void LegAttackEnd();
 	void LegAttackInput();
 	void HandAttackInput();
+	class APlayerCharacter* Temp;
+
+	class APlayerController* Input;
 
 	UPROPERTY()
 		bool isAttack = false;

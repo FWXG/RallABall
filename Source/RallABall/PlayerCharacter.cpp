@@ -38,7 +38,6 @@ APlayerCharacter::APlayerCharacter()
 	BoxHand->bHiddenInGame = false;
 	
 	GetCapsuleComponent()->InitCapsuleSize(40.0f, 100.0f);
-
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	TurnRate = 45.0f;
@@ -87,8 +86,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 	if (isAttack == true)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 0.0f;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+		Temp->DisableInput(NULL);
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("true %f"),
 			GetWorld()->TimeSeconds));
 	}
@@ -200,6 +198,4 @@ void APlayerCharacter::LegAttackEnd()
 	BoxLeg->SetCollisionProfileName("NoCollision");
 	isAttack = false;
 }
-
-
 
