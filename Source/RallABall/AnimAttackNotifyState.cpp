@@ -10,10 +10,10 @@ void UAnimAttackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 	if (MeshComp != nullptr && MeshComp->GetOwner() != nullptr)
 	{
 		APlayerCharacter* Player = Cast<APlayerCharacter>(MeshComp->GetOwner());
+		Input = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		if (Player != nullptr)
 		{
-			//Not work
-			Player->DisableInput(NULL);
+			Player->DisableInput(Input);
 			Player->LegAttackStart();
 			Player->HandAttackStart();
 		}
@@ -27,10 +27,10 @@ void UAnimAttackNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 	if (MeshComp != nullptr && MeshComp->GetOwner() != nullptr)
 	{
 		APlayerCharacter* Player = Cast<APlayerCharacter>(MeshComp->GetOwner());
-		/*Input = GetWorld()->GetFirstPlayerController();*/
+		Input = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		if (Player != nullptr)
 		{
-			/*Player->EnableInput(Input);*/
+			Player->EnableInput(Input);
 			Player->LegAttackEnd();
 			Player->HandAttackEnd();
 		}

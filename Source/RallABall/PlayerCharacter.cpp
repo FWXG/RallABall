@@ -8,35 +8,38 @@ APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
+	// Make all spring components
 	CameraSpring = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	CameraSpring->TargetArmLength = 500.0f;
 	CameraSpring->bUsePawnControlRotation = true;
 	CameraSpring->bEnableCameraLag = true;
 	CameraSpring->CameraLagSpeed = 5.0f;
 
-
+	// Make all camera components
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	Camera->SetupAttachment(CameraSpring, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 	CameraSpring->SetupAttachment(RootComponent);
 
+	// Hand box settings
 	BoxHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HandBox"));
 	BoxHand->SetupAttachment(RootComponent);
 	BoxHand->SetNotifyRigidBodyCollision(false);
 	BoxHand->SetCollisionProfileName("NoCollision");
 	BoxHand->bHiddenInGame = false;
 
+	// leg box settings
 	BoxLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("LegBox"));
 	BoxLeg->SetupAttachment(RootComponent);
 	BoxLeg->SetNotifyRigidBodyCollision(false);
 	BoxLeg->SetCollisionProfileName("NoCollision");
 	BoxHand->bHiddenInGame = false;
 	
+	// Capsule settings
 	GetCapsuleComponent()->InitCapsuleSize(40.0f, 100.0f);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
@@ -44,8 +47,11 @@ APlayerCharacter::APlayerCharacter()
 	LookRate = 45.0f;
 	PlayerSprint = 2.0f;
 
+	// Make objects of attack anim
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MelleHandAttackObject(TEXT("AnimMontage'/Game/Objects/Person/Animation/Punch.Punch'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeLegAttackObject(TEXT("AnimMontage'/Game/Objects/Person/Animation/LegAttack.LegAttack'"));
+	
+	// Anim check
 	if (MelleHandAttackObject.Succeeded() && MeleeLegAttackObject.Succeeded())
 	{
 		MeleeHandAttack = MelleHandAttackObject.Object;
@@ -53,11 +59,12 @@ APlayerCharacter::APlayerCharacter()
 	}
 }
 
-// Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	const FAttachmentTransformRules RulesOfAttach(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	const FAttachmentTransformRules RulesOfAttach(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget,
+		EAttachmentRule::KeepWorld, false);
+	// Attach attack box
 	BoxHand->AttachToComponent(GetMesh(), RulesOfAttach, "hand_Punch_Socket");
 	BoxLeg->AttachToComponent(GetMesh(), RulesOfAttach, "leg_kick_socket");
 
@@ -83,12 +90,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	if (APlayerCharacter::GetVelocity() != FVector(0.0f, 0.0f, 0.0f))
 	{
 		GetCharacterMovement()->JumpZVelocity = 400.0f;
-	}
-	if (isAttack == true)
-	{
-		Temp->DisableInput(NULL);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("true %f"),
-			GetWorld()->TimeSeconds));
 	}
 }
 
@@ -152,7 +153,8 @@ void APlayerCharacter::StopSprinting()
 	GetCharacterMovement()->MaxWalkSpeed /= PlayerSprint;
 }
 
-void APlayerCharacter::AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void APlayerCharacter::AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Blue, __FUNCTION__);
 }
@@ -161,26 +163,21 @@ void APlayerCharacter::HandAttackStart()
 {
 	BoxHand->SetCollisionProfileName("Melee");
 	BoxHand->SetNotifyRigidBodyCollision(true);
-	isAttack = true;
 }
 
 void APlayerCharacter::HandAttackEnd()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	BoxHand->SetNotifyRigidBodyCollision(false);
 	BoxHand->SetCollisionProfileName("NoCollision");
-	isAttack = false;
 }
 
 void APlayerCharacter::HandAttackInput()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 0;
 	PlayAnimMontage(MeleeHandAttack, 1.2f, FName("start_1"));
 }
 
 void APlayerCharacter::LegAttackInput()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 0;
 	PlayAnimMontage(MeleeLegAttack, 1.0f, FName("start"));
 }
 
@@ -188,14 +185,10 @@ void APlayerCharacter::LegAttackStart()
 {
 	BoxLeg->SetCollisionProfileName("Melee");
 	BoxLeg->SetNotifyRigidBodyCollision(true);
-	isAttack = true;
 }
 
 void APlayerCharacter::LegAttackEnd()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	BoxLeg->SetNotifyRigidBodyCollision(false);
 	BoxLeg->SetCollisionProfileName("NoCollision");
-	isAttack = false;
 }
-

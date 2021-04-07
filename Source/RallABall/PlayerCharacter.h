@@ -30,9 +30,6 @@ public:
 	void LegAttackEnd();
 	void LegAttackInput();
 	void HandAttackInput();
-	class APlayerCharacter* Temp;
-
-	class APlayerController* Input;
 
 	UPROPERTY()
 		bool isAttack = false;
@@ -76,7 +73,8 @@ protected:
 	void StopSprinting();
 
 	UFUNCTION()
-		void AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		void AttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			FVector NormalImpulse, const FHitResult& Hit);
 	
 	/*UFUNCTION()
 		void AttackOverlapBegin();*/
