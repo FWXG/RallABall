@@ -57,6 +57,8 @@ APlayerCharacter::APlayerCharacter()
 		MeleeHandAttack = MelleHandAttackObject.Object;
 		MeleeLegAttack = MeleeLegAttackObject.Object;
 	}
+
+	MyPlayer = Cast<APlayerCharacter>(GetMesh()->GetOwner());
 }
 
 void APlayerCharacter::BeginPlay()
@@ -87,10 +89,18 @@ void APlayerCharacter::Tick(float DeltaTime)
 	NewYawRotation.Yaw += CameraInput.X;
 	SetActorRotation(NewYawRotation);
 
+	// Max run jump height 
 	if (APlayerCharacter::GetVelocity() != FVector(0.0f, 0.0f, 0.0f))
 	{
 		GetCharacterMovement()->JumpZVelocity = 400.0f;
 	}
+	// Can't rotate in jump
+	//if (APlayerCharacter::GetVelocity().Z != 0.0f)
+	//{
+	//	PlayerYawRotation = MyPlayer->GetActorRotation();
+	//	PlayerYawRotation.Yaw = GetActorRotation().Pitch;
+	//	MyPlayer->SetActorRotation(PlayerYawRotation);
+	//}
 }
 
 // Called to bind functionality to input
@@ -123,6 +133,7 @@ void APlayerCharacter::MoveForward(float value)
 	const FRotator Yaw(0, rotarorIs.Yaw, 0);
 	const FVector direction = FRotationMatrix(Yaw).GetUnitAxis(EAxis::X);
 	AddMovementInput(direction, value);
+	
 }
 
 void APlayerCharacter::MoveRight(float value)

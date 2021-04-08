@@ -31,6 +31,8 @@ public:
 	void LegAttackInput();
 	void HandAttackInput();
 
+	class APlayerCharacter* MyPlayer;
+
 	UPROPERTY()
 		bool isAttack = false;
 	
@@ -83,6 +85,7 @@ protected:
 
 	FVector2D CameraInput;
 	FVector2D MoveInput;
+	FRotator PlayerYawRotation;
 
 	float TurnRate;
 	float LookRate;
